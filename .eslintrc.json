@@ -8,6 +8,8 @@
   "rules": {
     "simple-import-sort/imports": "error",
     "react-hooks/rules-of-hooks": "off",
-    "camelcase" : "off"
+    "camelcase" : "off",
+    "no-restricted-syntax": "off",
+    "no-case-declarations": "off"
   }
 }

@@ -1,10 +1,9 @@
 import '@/styles/globals.css'
 
-
-import { Inter } from 'next/font/google'
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 
-
+import { Providers } from '@/providers'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -20,10 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        className={`${inter.className} antialiased`}
-      >
-        {children}
+      <body className={`${inter.className} antialiased`}>
+        <Providers>
+          <main className="flex min-h-screen">{children}</main>
+        </Providers>
       </body>
     </html>
   )
