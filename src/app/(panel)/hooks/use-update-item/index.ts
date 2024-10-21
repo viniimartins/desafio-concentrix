@@ -7,35 +7,38 @@ import { QueryKeyProps } from '@/types/queryKeyProps'
 import { Priority } from '../../types'
 
 interface Item {
+  id: string
   name: string
   description: string
   priority: Priority
 }
 
-export interface CreateItem {
+export interface UpdateItem {
   item: Item
 }
 
-async function create({ item }: CreateItem) {
-  const { data } = await axios.post('/api/items', {
-    ...item,
+async function update({ item }: UpdateItem) {
+  const { id, ...rawItem } = item
+
+  const { data } = await axios.put(`/api/items/${id}`, {
+    ...rawItem,
   })
 
   return data
 }
 
-export function useCreateItem({ queryKey }: QueryKeyProps) {
+export function useUpdateItem({ queryKey }: QueryKeyProps) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: create,
-    mutationKey: ['create-item'],
+    mutationFn: update,
+    mutationKey: ['update-item'],
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
     onError: () => {
       toast({
         variant: 'destructive',
         title: 'Opss, algo deu errado!',
-        description: 'Erro ao criar o item.',
+        description: 'Erro ao editar o item.',
       })
     },
   })

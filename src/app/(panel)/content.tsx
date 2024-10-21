@@ -37,6 +37,7 @@ import { columns } from './components/table/columns'
 import { DataTable } from './components/table/data-table'
 import { useCreateItem } from './hooks/use-create-item'
 import { useGetItem } from './hooks/use-get-item'
+import { useUpdateItem } from './hooks/use-update-item'
 import { IItem } from './types'
 
 const itemSchema = z.object({
@@ -62,9 +63,15 @@ export function Content() {
 
   const { data: itens, queryKey } = useGetItem()
 
-  const { mutateAsync: handleCreateItem, isPending } = useCreateItem({
-    queryKey,
-  })
+  const { mutateAsync: handleCreateItem, isPending: isPendingCreateItem } =
+    useCreateItem({
+      queryKey,
+    })
+
+  const { mutateAsync: handleUpdateitem, isPending: isPendingUpdateItem } =
+    useUpdateItem({
+      queryKey,
+    })
 
   const form = useForm<IAddItemFormData>({
     resolver: zodResolver(itemSchema),
@@ -89,24 +96,41 @@ export function Content() {
   }, [reset, toUpdateModalItem])
 
   function onSubmit(itemData: IAddItemFormData) {
-    handleCreateItem(
-      { item: itemData },
-      {
-        onSuccess: () => {
-          toast({
-            variant: 'success',
-            title: 'Item criado com sucesso!',
-            description: 'O item foi adicionado à lista.',
-          })
+    if (!toUpdateModalItem) {
+      handleCreateItem(
+        { item: itemData },
+        {
+          onSuccess: () => {
+            toast({
+              variant: 'success',
+              title: 'Item criado com sucesso!',
+              description: 'O item foi adicionado à lista.',
+            })
+          },
         },
-      },
-    )
+      )
+    }
+
+    if (toUpdateModalItem) {
+      handleUpdateitem(
+        { item: { ...itemData, id: toUpdateModalItem.id } },
+        {
+          onSuccess: () => {
+            toast({
+              variant: 'success',
+              title: 'Item editado com sucesso!',
+              description: 'O item foi atualiado na lista.',
+            })
+          },
+        },
+      )
+    }
 
     actionsModalItem.close()
     reset()
   }
 
-  const isLoading = isPending || isSubmitting
+  const isLoading = isPendingCreateItem || isPendingUpdateItem || isSubmitting
 
   const handleOpenModal = () => {
     reset()
