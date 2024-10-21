@@ -1,10 +1,10 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-import { IItem } from '@/app/types'
+import { IItem } from '@/app/(panel)/types'
 
 async function get() {
-  const { data } = await axios.get<IItem[]>('/item')
+  const { data } = await axios.get<IItem[]>('/api/items')
 
   return data
 }
