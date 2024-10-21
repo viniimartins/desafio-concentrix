@@ -1,3 +1,13 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": [
+    "@rocketseat/eslint-config/next", 
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": ["simple-import-sort"],
+  "rules": {
+    "simple-import-sort/imports": "error",
+    "react-hooks/rules-of-hooks": "off",
+    "camelcase" : "off"
+  }
 }
