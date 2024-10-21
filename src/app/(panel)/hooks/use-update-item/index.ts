@@ -4,7 +4,7 @@ import axios from 'axios'
 import { toast } from '@/hooks/use-toast'
 import { QueryKeyProps } from '@/types/queryKeyProps'
 
-import { Priority } from '../../types'
+import { IItem, Priority } from '../../types'
 
 interface Item {
   id: string
@@ -33,8 +33,24 @@ export function useUpdateItem({ queryKey }: QueryKeyProps) {
   return useMutation({
     mutationFn: update,
     mutationKey: ['update-item'],
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
-    onError: () => {
+    onMutate: async ({ item: { description, name, id } }) => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousItems = queryClient.getQueryData<IItem[]>(queryKey)
+
+      queryClient.setQueryData(queryKey, (old?: Item[]) => {
+        if (old) {
+          return old.map((item) =>
+            item.id === id ? { ...item, description, name } : item,
+          )
+        }
+        return old
+      })
+
+      return { previousItems }
+    },
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(queryKey, context?.previousItems)
       toast({
         variant: 'destructive',
         title: 'Opss, algo deu errado!',
