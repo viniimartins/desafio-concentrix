@@ -1,4 +1,4 @@
-type Priority = 'high' | 'medium' | 'low'
+export type Priority = 'high' | 'medium' | 'low'
 
 export interface IItem {
   id: string

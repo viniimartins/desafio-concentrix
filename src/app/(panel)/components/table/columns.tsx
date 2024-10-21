@@ -2,14 +2,10 @@
 
 import { ColumnDef } from '@tanstack/react-table'
 
-import { IItem } from '../../types'
+import { Badge } from '@/components/ui/badge'
+import { priorityValue } from '@/utils/priority'
 
-export type Payment = {
-  id: string
-  amount: number
-  status: 'pending' | 'processing' | 'success' | 'failed'
-  email: string
-}
+import { IItem, Priority } from '../../types'
 
 export const columns: ColumnDef<IItem>[] = [
   {
@@ -23,5 +19,12 @@ export const columns: ColumnDef<IItem>[] = [
   {
     accessorKey: 'priority',
     header: 'Prioridade',
+    cell: ({ row }) => {
+      const value: Priority = row.getValue('priority')
+
+      const { variant, name } = priorityValue(value)
+
+      return <Badge variant={variant}>{name}</Badge>
+    },
   },
 ]
