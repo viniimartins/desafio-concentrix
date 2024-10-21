@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircle } from 'lucide-react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
@@ -53,7 +54,11 @@ const itemSchema = z.object({
 type IAddItemFormData = z.infer<typeof itemSchema>
 
 export function Content() {
-  const { isOpen, actions } = useModal<IItem>()
+  const {
+    isOpen: isOpenModalItem,
+    actions: actionsModalItem,
+    target: toUpdateModalItem,
+  } = useModal<IItem>()
 
   const { data: itens, queryKey } = useGetItem()
 
@@ -75,6 +80,14 @@ export function Content() {
     reset,
   } = form
 
+  useEffect(() => {
+    reset({
+      name: toUpdateModalItem?.name,
+      description: toUpdateModalItem?.description,
+      priority: toUpdateModalItem?.priority,
+    })
+  }, [reset, toUpdateModalItem])
+
   function onSubmit(itemData: IAddItemFormData) {
     handleCreateItem(
       { item: itemData },
@@ -89,7 +102,7 @@ export function Content() {
       },
     )
 
-    actions.close()
+    actionsModalItem.close()
     reset()
   }
 
@@ -97,7 +110,7 @@ export function Content() {
 
   const handleOpenModal = () => {
     reset()
-    actions.open()
+    actionsModalItem.open()
   }
 
   return (
@@ -106,9 +119,9 @@ export function Content() {
         <Button onClick={handleOpenModal}>Adicionar Item</Button>
       </div>
 
-      {itens && <DataTable columns={columns} data={itens} />}
+      {itens && <DataTable columns={columns(actionsModalItem)} data={itens} />}
 
-      <Dialog open={isOpen} onOpenChange={actions.close}>
+      <Dialog open={isOpenModalItem} onOpenChange={actionsModalItem.close}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Adicionar Item</DialogTitle>
