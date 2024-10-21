@@ -48,6 +48,7 @@ import { useDeleteItem } from './hooks/use-delete-item'
 import { useGetItem } from './hooks/use-get-item'
 import { useUpdateItem } from './hooks/use-update-item'
 import { IItem } from './types'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const itemSchema = z.object({
   name: z.string().min(3, {
@@ -70,7 +71,7 @@ export function Content() {
     target: toUpdateModalItem,
   } = useModal<IItem>()
 
-  const { data: itens, queryKey } = useGetItem()
+  const { data: items, queryKey, isFetching } = useGetItem()
 
   const { mutateAsync: handleCreateItem, isPending: isPendingCreateItem } =
     useCreateItem({
@@ -170,34 +171,64 @@ export function Content() {
     {
       accessorKey: 'name',
       header: 'Nome',
+      size: 37.5,
+      minSize: 37.5,
+      maxSize: 37.5,
+      cell: ({ row }) => {
+        const value = row.original.name
+        return (
+          <span>
+            {isFetching ? <Skeleton className='w-[37.5rem] h-[1rem]' /> : value}
+          </span>
+        )
+      },
     },
     {
       accessorKey: 'description',
       header: 'Descrição',
+      size: 25,
+      minSize: 25,
+      maxSize: 25,
+      cell: ({ row }) => {
+        const value = row.original.description
+        return (
+          <span>
+            {isFetching ? <Skeleton className='w-[25rem] h-[1rem]' /> : value}
+          </span>
+        )
+      },
     },
     {
       accessorKey: 'priority',
       header: 'Prioridade',
+      size: 25,
+      minSize: 25,
+      maxSize: 25,
       cell: ({ row }) => {
         const value = row.original.priority
-
         const { variant, name } = priorityValue(value)
 
-        return <Badge variant={variant}>{name}</Badge>
+        return (
+          <span>
+            {isFetching ? <Skeleton className='w-[6rem] h-[1rem]' /> : <Badge variant={variant}>{name}</Badge>}
+          </span>
+        )
       },
     },
     {
       accessorKey: 'actions',
       header: 'Ações',
+      size: 12.5,
+      minSize: 12.5,
+      maxSize: 12.5,
       cell: ({ row }) => {
         const item = row.original
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-[2rem] w-[2rem] p-0">
                 <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="h-[1rem] w-[1rem]" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -214,13 +245,14 @@ export function Content() {
     },
   ]
 
+
   return (
     <>
       <div className="flex justify-end">
         <Button onClick={handleOpenModal}>Adicionar Item</Button>
       </div>
 
-      {itens && <DataTable columns={columns} data={itens} />}
+      {items && <DataTable columns={columns} data={items} />}
 
       <Dialog open={isOpenModalItem} onOpenChange={actionsModalItem.close}>
         <DialogContent>
