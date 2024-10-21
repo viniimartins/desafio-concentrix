@@ -4,6 +4,6 @@ export interface IItem {
   id: string
   name: string
   description: string
-  createdAt: Date
+  createdAt: string
   priority: Priority
 }
