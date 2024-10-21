@@ -1,11 +1,13 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { LoaderCircle } from 'lucide-react'
+import { ColumnDef, ColumnDefResolved } from '@tanstack/react-table'
+import { LoaderCircle, MoreHorizontal } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,6 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -32,10 +40,11 @@ import {
 } from '@/components/ui/select'
 import { useModal } from '@/hooks/use-modal'
 import { toast } from '@/hooks/use-toast'
+import { priorityValue } from '@/utils/priority'
 
-import { columns } from './components/table/columns'
 import { DataTable } from './components/table/data-table'
 import { useCreateItem } from './hooks/use-create-item'
+import { useDeleteItem } from './hooks/use-delete-item'
 import { useGetItem } from './hooks/use-get-item'
 import { useUpdateItem } from './hooks/use-update-item'
 import { IItem } from './types'
@@ -67,6 +76,9 @@ export function Content() {
     useCreateItem({
       queryKey,
     })
+
+  const { mutateAsync: deleteItem, isPending: isPendingDeleteItem } =
+    useDeleteItem({ queryKey })
 
   const { mutateAsync: handleUpdateitem, isPending: isPendingUpdateItem } =
     useUpdateItem({
@@ -130,12 +142,77 @@ export function Content() {
     reset()
   }
 
-  const isLoading = isPendingCreateItem || isPendingUpdateItem || isSubmitting
+  const isLoading =
+    isPendingCreateItem ||
+    isPendingUpdateItem ||
+    isPendingDeleteItem ||
+    isSubmitting
+
+  const handleDeleteItem = (id: string) => {
+    deleteItem({ itemId: id }, {
+      onSuccess: () => {
+        toast({
+          variant: 'success',
+          title: 'Item excluido com sucesso!',
+          description: 'O item foi excluido à lista.',
+        })
+      },
+    })
+    actionsModalItem.close()
+  }
 
   const handleOpenModal = () => {
     reset()
     actionsModalItem.open()
   }
+
+  const columns: ColumnDef<IItem>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Nome',
+    },
+    {
+      accessorKey: 'description',
+      header: 'Descrição',
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Prioridade',
+      cell: ({ row }) => {
+        const value = row.original.priority
+
+        const { variant, name } = priorityValue(value)
+
+        return <Badge variant={variant}>{name}</Badge>
+      },
+    },
+    {
+      accessorKey: 'actions',
+      header: 'Ações',
+      cell: ({ row }) => {
+        const item = row.original
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => actionsModalItem.open(item)}>
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDeleteItem(item.id)}>
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
 
   return (
     <>
@@ -143,7 +220,7 @@ export function Content() {
         <Button onClick={handleOpenModal}>Adicionar Item</Button>
       </div>
 
-      {itens && <DataTable columns={columns(actionsModalItem)} data={itens} />}
+      {itens && <DataTable columns={columns} data={itens} />}
 
       <Dialog open={isOpenModalItem} onOpenChange={actionsModalItem.close}>
         <DialogContent>
