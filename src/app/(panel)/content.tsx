@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircle } from 'lucide-react'
-import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -30,21 +30,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useModal } from '@/hooks/use-modal'
+import { toast } from '@/hooks/use-toast'
 
 import { columns } from './components/table/columns'
 import { DataTable } from './components/table/data-table'
+import { useCreateItem } from './hooks/use-create-item'
 import { useGetItem } from './hooks/use-get-item'
 import { IItem } from './types'
 
 const itemSchema = z.object({
-  name: z.string().min(2, {
-    message: 'Selecione o nome do item',
+  name: z.string().min(3, {
+    message: 'O nome do item deve ter pelo menos 3 caracteres.',
   }),
-  description: z.string().min(2, {
-    message: 'Selecione descrição do item',
+  description: z.string().min(3, {
+    message: 'A descrição do item deve ter pelo menos 3 caracteres.',
   }),
-  priority: z.string({
-    required_error: 'Selecione a prioridade do item',
+  priority: z.enum(['low', 'medium', 'high'], {
+    required_error: 'Por favor, selecione a prioridade do item.',
   }),
 })
 
@@ -52,7 +54,12 @@ type IAddItemFormData = z.infer<typeof itemSchema>
 
 export function Content() {
   const { isOpen, actions } = useModal<IItem>()
-  const { data: itens } = useGetItem()
+
+  const { data: itens, queryKey } = useGetItem()
+
+  const { mutateAsync: handleCreateItem, isPending } = useCreateItem({
+    queryKey,
+  })
 
   const form = useForm<IAddItemFormData>({
     resolver: zodResolver(itemSchema),
@@ -68,12 +75,25 @@ export function Content() {
     reset,
   } = form
 
-  function onSubmit({ description, name, priority }: IAddItemFormData) {
-    console.log('TESTE')
+  function onSubmit(itemData: IAddItemFormData) {
+    handleCreateItem(
+      { item: itemData },
+      {
+        onSuccess: () => {
+          toast({
+            variant: 'success',
+            title: 'Item criado com sucesso!',
+            description: 'O item foi adicionado à lista.',
+          })
+        },
+      },
+    )
 
     actions.close()
     reset()
   }
+
+  const isLoading = isPending || isSubmitting
 
   const handleOpenModal = () => {
     reset()
@@ -91,7 +111,8 @@ export function Content() {
       <Dialog open={isOpen} onOpenChange={actions.close}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adiciona item?</DialogTitle>
+            <DialogTitle>Adicionar Item</DialogTitle>
+            <DialogDescription>Preencha os detalhes do item.</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -114,10 +135,10 @@ export function Content() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome</FormLabel>
+                      <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Digite a descição do item"
+                          placeholder="Digite a descrição do item"
                           {...field}
                         />
                       </FormControl>
@@ -152,9 +173,9 @@ export function Content() {
                 />
               </div>
 
-              <Button type="submit">
+              <Button type="submit" disabled={isLoading}>
                 Salvar
-                {isSubmitting && (
+                {isLoading && (
                   <LoaderCircle size={18} className="animate-spin" />
                 )}
               </Button>

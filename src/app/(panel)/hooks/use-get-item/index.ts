@@ -12,9 +12,11 @@ async function get() {
 export function useGetItem() {
   const queryKey = ['get-itens']
 
-  return useQuery({
+  const query = useQuery({
     queryKey,
     queryFn: get,
     placeholderData: keepPreviousData,
   })
+
+  return { ...query, queryKey }
 }
