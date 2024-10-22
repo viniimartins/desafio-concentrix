@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
-import { LoaderCircle, MoreHorizontal } from 'lucide-react'
+import { LoaderCircle, MoreHorizontal, Search } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
@@ -65,6 +65,7 @@ const itemSchema = z.object({
 })
 
 type IAddItemFormData = z.infer<typeof itemSchema>
+type ISearchFormData = { search: string }
 
 export function Content() {
   const {
@@ -73,7 +74,20 @@ export function Content() {
     target: toUpdateModalItem,
   } = useModal<IItem>()
 
-  const { data: items, queryKey, isFetching } = useGetItem()
+
+  const searchForm = useForm<ISearchFormData>({
+    defaultValues: {
+      search: '',
+    },
+  })
+
+  const {
+    watch
+  } = searchForm
+
+  const { search: searchItemValue } = watch()
+
+  const { data: items, queryKey, isFetching } = useGetItem({ search: searchItemValue })
 
   const { mutateAsync: handleCreateItem, isPending: isPendingCreateItem } =
     useCreateItem({
@@ -96,6 +110,9 @@ export function Content() {
       priority: undefined,
     },
   })
+
+
+
 
   const {
     formState: { isSubmitting },
@@ -269,9 +286,21 @@ export function Content() {
 
   return (
     <>
-      <div className="flex justify-end">
+
+      <div className='w-full flex justify-between'>
+
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por nome"
+            {...searchForm.register('search')}
+            className="pl-8"
+          />
+        </div>
+
         <Button onClick={handleOpenModal}>Adicionar Item</Button>
       </div>
+
 
       {items && <DataTable columns={columns} data={items} />}
 

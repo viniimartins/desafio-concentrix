@@ -4,18 +4,26 @@ import axios from 'axios'
 import { IItem } from '@/app/(panel)/types'
 import { ItemMock } from '@/shared/mock/itens'
 
-async function get() {
-  const { data } = await axios.get<IItem[]>('/api/items')
+interface Props {
+  search: string
+}
+
+async function get(search: string) {
+  const { data } = await axios.get<IItem[]>('/api/items',
+    {
+      params: { search },
+    }
+  )
 
   return data
 }
 
-export function useGetItem() {
-  const queryKey = ['get-items']
+export function useGetItem({ search }: Props) {
+  const queryKey = ['get-items', search]
 
   const query = useQuery({
     queryKey,
-    queryFn: get,
+    queryFn: () => get(search),
     placeholderData: ItemMock,
   })
 
