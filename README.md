@@ -2,7 +2,7 @@
 
 👋 **Introdução**
 
-Bem-vindo(a) ao teste técnico para desenvolvedor frontEnd da Concentrix!
+Bem-vindo(a) ao teste técnico para desenvolvedor FrontEnd da Concentrix!
 
 ## 🛠️ Ferramentas e Tecnologias
 
