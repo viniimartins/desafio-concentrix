@@ -174,6 +174,7 @@ export function Content() {
       size: 37.5,
       minSize: 37.5,
       maxSize: 37.5,
+      enableSorting: true,
       cell: ({ row }) => {
         const value = row.original.name
         return (
@@ -189,6 +190,7 @@ export function Content() {
       size: 25,
       minSize: 25,
       maxSize: 25,
+      enableSorting: true,
       cell: ({ row }) => {
         const value = row.original.description
         return (
@@ -204,6 +206,7 @@ export function Content() {
       size: 25,
       minSize: 25,
       maxSize: 25,
+      enableSorting: true,
       cell: ({ row }) => {
         const value = row.original.priority
         const { variant, name } = priorityValue(value)
@@ -244,7 +247,6 @@ export function Content() {
       },
     },
   ]
-
 
   return (
     <>
