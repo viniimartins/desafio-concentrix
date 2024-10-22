@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 
 import { toast } from '@/hooks/use-toast'
 import { QueryKeyProps } from '@/types/queryKeyProps'
 
 import { IItem, Priority } from '../../types'
+import { api } from '@/service/api'
 
 interface Item {
   id: string
@@ -20,7 +20,7 @@ export interface UpdateItem {
 async function update({ item }: UpdateItem) {
   const { id, ...rawItem } = item
 
-  const { data } = await axios.put(`/api/items/${id}`, {
+  const { data } = await api.put(`/items/${id}`, {
     ...rawItem,
   })
 

@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import axios from 'axios'
 
 import { IItem, Priority } from '@/app/(panel)/types'
 import { ItemMock } from '@/shared/mock/itens'
+import { api } from '@/service/api'
 
 interface Props {
   name: string
@@ -10,7 +10,7 @@ interface Props {
 }
 
 async function get(name: string, priority: Priority) {
-  const { data } = await axios.get<IItem[]>('/api/items', {
+  const { data } = await api.get<IItem[]>('/items', {
     params: { name, priority },
   })
 

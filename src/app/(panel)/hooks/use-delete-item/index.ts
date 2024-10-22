@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
 
 import { toast } from '@/hooks/use-toast'
 import { QueryKeyProps } from '@/types/queryKeyProps'
 
 import { IItem } from '../../types'
+import { api } from '@/service/api'
 
 interface Item {
   itemId: string
 }
 
 async function deleteItem({ itemId }: Item) {
-  const { data } = await axios.delete(`/api/items/${itemId}`)
+  const { data } = await api.delete(`/items/${itemId}`)
 
   return data
 }
