@@ -1,11 +1,13 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef, ColumnDefResolved } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import { LoaderCircle, MoreHorizontal } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
+
+import { format } from "date-fns";
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -214,6 +216,23 @@ export function Content() {
         return (
           <span>
             {isFetching ? <Skeleton className='w-[6rem] h-[1rem]' /> : <Badge variant={variant}>{name}</Badge>}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Data de criação',
+      size: 25,
+      minSize: 25,
+      maxSize: 25,
+      enableSorting: true,
+      cell: ({ row }) => {
+        const value = row.original.createdAt
+
+        return (
+          <span>
+            {isFetching ? <Skeleton className='w-[6rem] h-[1rem]' /> : format(value, "dd/MM/yyyy")}
           </span>
         )
       },
