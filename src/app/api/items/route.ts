@@ -4,11 +4,13 @@ import prisma from '@/lib/prisma'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const name = searchParams.get('search');
+  const name = searchParams.get('name');
+  const priority = searchParams.get('priority');
 
   const items = await prisma.item.findMany({
     where: {
       name: name ? { contains: name } : undefined,
+      priority: priority ? priority : undefined,
     }
   });
 

@@ -64,8 +64,8 @@ const itemSchema = z.object({
   }),
 })
 
+
 type IAddItemFormData = z.infer<typeof itemSchema>
-type ISearchFormData = { search: string }
 
 export function Content() {
   const {
@@ -75,19 +75,11 @@ export function Content() {
   } = useModal<IItem>()
 
 
-  const searchForm = useForm<ISearchFormData>({
-    defaultValues: {
-      search: '',
-    },
-  })
+  const { register, watch, setValue } = useForm();
 
-  const {
-    watch
-  } = searchForm
+  const { name: searchNameItemValue, priority: searchPriorityValue } = watch()
 
-  const { search: searchItemValue } = watch()
-
-  const { data: items, queryKey, isFetching } = useGetItem({ search: searchItemValue })
+  const { data: items, queryKey, isFetching } = useGetItem({ name: searchNameItemValue, priority: searchPriorityValue })
 
   const { mutateAsync: handleCreateItem, isPending: isPendingCreateItem } =
     useCreateItem({
@@ -110,9 +102,6 @@ export function Content() {
       priority: undefined,
     },
   })
-
-
-
 
   const {
     formState: { isSubmitting },
@@ -286,23 +275,35 @@ export function Content() {
 
   return (
     <>
-
       <div className='w-full flex justify-between'>
+        <div className='flex gap-4'>
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar por nome"
+              {...register('name')}
+              className="pl-8 w-50"
+            />
+          </div>
 
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar por nome"
-            {...searchForm.register('search')}
-            className="pl-8"
-          />
+          <Select onValueChange={(value) => setValue('priority', value)} defaultValue={searchPriorityValue}>
+            <SelectTrigger className='w-56'>
+              <SelectValue placeholder="Selecione a prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="medium">Média</SelectItem>
+              <SelectItem value="low">Baixa</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Button onClick={handleOpenModal}>Adicionar Item</Button>
-      </div>
+      </div >
 
 
-      {items && <DataTable columns={columns} data={items} />}
+      {items && <DataTable columns={columns} data={items} />
+      }
 
       <Dialog open={isOpenModalItem} onOpenChange={actionsModalItem.close}>
         <DialogContent>

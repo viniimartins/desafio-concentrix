@@ -1,29 +1,30 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 
-import { IItem } from '@/app/(panel)/types'
+import { IItem, Priority } from '@/app/(panel)/types'
 import { ItemMock } from '@/shared/mock/itens'
 
 interface Props {
-  search: string
+  name: string
+  priority: Priority
 }
 
-async function get(search: string) {
+async function get(name: string, priority: Priority) {
   const { data } = await axios.get<IItem[]>('/api/items',
     {
-      params: { search },
+      params: { name, priority },
     }
   )
 
   return data
 }
 
-export function useGetItem({ search }: Props) {
-  const queryKey = ['get-items', search]
+export function useGetItem({ name, priority }: Props) {
+  const queryKey = ['get-items', name, priority]
 
   const query = useQuery({
     queryKey,
-    queryFn: () => get(search),
+    queryFn: () => get(name, priority),
     placeholderData: ItemMock,
   })
 
