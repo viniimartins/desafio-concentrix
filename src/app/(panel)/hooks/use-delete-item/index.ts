@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
-import { QueryKeyProps } from '@/types/queryKeyProps'
 import { toast } from '@/hooks/use-toast'
+import { QueryKeyProps } from '@/types/queryKeyProps'
+
 import { IItem } from '../../types'
 
 interface Item {
@@ -28,7 +29,7 @@ export function useDeleteItem({ queryKey }: QueryKeyProps) {
 
       queryClient.setQueryData(queryKey, (old?: IItem[]) => {
         if (old) {
-          return old.filter((item) => item.id !== itemId);
+          return old.filter((item) => item.id !== itemId)
         }
         return old
       })

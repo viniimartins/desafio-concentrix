@@ -10,11 +10,9 @@ interface Props {
 }
 
 async function get(name: string, priority: Priority) {
-  const { data } = await axios.get<IItem[]>('/api/items',
-    {
-      params: { name, priority },
-    }
-  )
+  const { data } = await axios.get<IItem[]>('/api/items', {
+    params: { name, priority },
+  })
 
   return data
 }
