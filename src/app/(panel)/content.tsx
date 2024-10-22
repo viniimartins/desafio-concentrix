@@ -1,9 +1,7 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
-import { LoaderCircle, MoreHorizontal, Search } from 'lucide-react'
-import { useEffect } from 'react'
+import { MoreHorizontal, Search } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import z from 'zod'
 
@@ -24,14 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -45,27 +36,19 @@ import { toast } from '@/hooks/use-toast'
 import { priorityValue } from '@/utils/priority'
 
 import { DataTable } from './components/table/data-table'
-import { useCreateItem } from './hooks/use-create-item'
 import { useDeleteItem } from './hooks/use-delete-item'
 import { useGetItem } from './hooks/use-get-item'
-import { useUpdateItem } from './hooks/use-update-item'
-import { IItem } from './types'
+import { IItem, Priority } from './types'
 import { Skeleton } from '@/components/ui/skeleton'
+import { FormContainer } from './form'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
-const itemSchema = z.object({
-  name: z.string().min(3, {
-    message: 'O nome do item deve ter pelo menos 3 caracteres.',
-  }),
-  description: z.string().min(3, {
-    message: 'A descrição do item deve ter pelo menos 3 caracteres.',
-  }),
-  priority: z.enum(['low', 'medium', 'high'], {
-    required_error: 'Por favor, selecione a prioridade do item.',
-  }),
+const searchsInputs = z.object({
+  name: z.string(),
+  priority: z.enum(['low', 'medium', 'high'])
 })
 
-
-type IAddItemFormData = z.infer<typeof itemSchema>
+type ISearchInputs = z.infer<typeof searchsInputs>
 
 export function Content() {
   const {
@@ -74,88 +57,18 @@ export function Content() {
     target: toUpdateModalItem,
   } = useModal<IItem>()
 
+  const {
+    isOpen: isOpenAlertDialogItem,
+    actions: actionsAlertDialogItem,
+    target: toDeleteAlertDialogItem,
+  } = useModal<IItem>()
 
-  const { register, watch, setValue } = useForm();
-
+  const { register, watch, setValue } = useForm<ISearchInputs>()
   const { name: searchNameItemValue, priority: searchPriorityValue } = watch()
-
   const { data: items, queryKey, isFetching } = useGetItem({ name: searchNameItemValue, priority: searchPriorityValue })
-
-  const { mutateAsync: handleCreateItem, isPending: isPendingCreateItem } =
-    useCreateItem({
-      queryKey,
-    })
 
   const { mutateAsync: deleteItem, isPending: isPendingDeleteItem } =
     useDeleteItem({ queryKey })
-
-  const { mutateAsync: handleUpdateitem, isPending: isPendingUpdateItem } =
-    useUpdateItem({
-      queryKey,
-    })
-
-  const form = useForm<IAddItemFormData>({
-    resolver: zodResolver(itemSchema),
-    defaultValues: {
-      description: '',
-      name: '',
-      priority: undefined,
-    },
-  })
-
-  const {
-    formState: { isSubmitting },
-    reset,
-  } = form
-
-  useEffect(() => {
-    reset({
-      name: toUpdateModalItem?.name,
-      description: toUpdateModalItem?.description,
-      priority: toUpdateModalItem?.priority,
-    })
-  }, [reset, toUpdateModalItem])
-
-  function onSubmit(itemData: IAddItemFormData) {
-    if (!toUpdateModalItem) {
-      handleCreateItem(
-        { item: itemData },
-        {
-          onSuccess: () => {
-            toast({
-              variant: 'success',
-              title: 'Item criado com sucesso!',
-              description: 'O item foi adicionado à lista.',
-            })
-          },
-        },
-      )
-    }
-
-    if (toUpdateModalItem) {
-      handleUpdateitem(
-        { item: { ...itemData, id: toUpdateModalItem.id } },
-        {
-          onSuccess: () => {
-            toast({
-              variant: 'success',
-              title: 'Item editado com sucesso!',
-              description: 'O item foi atualiado na lista.',
-            })
-          },
-        },
-      )
-    }
-
-    actionsModalItem.close()
-    reset()
-  }
-
-  const isLoading =
-    isPendingCreateItem ||
-    isPendingUpdateItem ||
-    isPendingDeleteItem ||
-    isSubmitting
 
   const handleDeleteItem = (id: string) => {
     deleteItem({ itemId: id }, {
@@ -167,12 +80,7 @@ export function Content() {
         })
       },
     })
-    actionsModalItem.close()
-  }
-
-  const handleOpenModal = () => {
-    reset()
-    actionsModalItem.open()
+    actionsAlertDialogItem.close()
   }
 
   const columns: ColumnDef<IItem>[] = [
@@ -263,7 +171,7 @@ export function Content() {
               <DropdownMenuItem onClick={() => actionsModalItem.open(item)}>
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeleteItem(item.id)}>
+              <DropdownMenuItem onClick={() => actionsAlertDialogItem.open(item)}>
                 Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -286,7 +194,7 @@ export function Content() {
             />
           </div>
 
-          <Select onValueChange={(value) => setValue('priority', value)} defaultValue={searchPriorityValue}>
+          <Select onValueChange={(value: Priority) => setValue('priority', value)} defaultValue={searchPriorityValue}>
             <SelectTrigger className='w-56'>
               <SelectValue placeholder="Selecione a prioridade" />
             </SelectTrigger>
@@ -298,7 +206,7 @@ export function Content() {
           </Select>
         </div>
 
-        <Button onClick={handleOpenModal}>Adicionar Item</Button>
+        <Button onClick={() => actionsModalItem.open()}>Adicionar Item</Button>
       </div >
 
 
@@ -311,75 +219,27 @@ export function Content() {
             <DialogTitle>Adicionar Item</DialogTitle>
             <DialogDescription>Preencha os detalhes do item.</DialogDescription>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="space-y-2">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite o nome do item" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite a descrição do item"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prioridade</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a prioridade" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="high">Alta</SelectItem>
-                          <SelectItem value="medium">Média</SelectItem>
-                          <SelectItem value="low">Baixa</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button type="submit" disabled={isLoading}>
-                Salvar
-                {isLoading && (
-                  <LoaderCircle size={18} className="animate-spin" />
-                )}
-              </Button>
-            </form>
-          </Form>
+          <FormContainer toUpdateModalItem={toUpdateModalItem} queryKey={queryKey} actionsModalItem={actionsModalItem} />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={isOpenAlertDialogItem}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja realmente deletar este item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso irá remover permanentemente o item
+              e todos os dados associados a ele.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={actionsAlertDialogItem.close}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDeleteItem(toDeleteAlertDialogItem?.id ?? '')}
+            >Deletar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
